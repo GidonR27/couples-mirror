@@ -173,10 +173,8 @@ export const DIMENSIONS: Dimension[] = [
     },
     actionIdea: 'Practice one repair ritual — e.g., saying “I see your point,” or ending conflict with gratitude.',
     duoQuestions: [
-      'Can we change, fix, and improve things when needed?',
       'Are we able to change patterns or habits that don’t work anymore?',
       'How do we respond to change (moving, new job, loss)?',
-      'Have we ever agreed to change a routine, pattern, or habit that wasn’t working?',
       'Do we forgive and move forward after conflicts?',
       'Can you think of a time we surprised each other by being more flexible or understanding than expected?',
       'What’s one pattern we’ve replayed too many times? What’s the lesson we keep missing?'
@@ -227,12 +225,12 @@ export const DIMENSIONS: Dimension[] = [
     },
     actionIdea: 'Map a small “relationship system”: you, your partner, your shared world. Discuss how each circle feeds the others.',
     duoQuestions: [
-      'Do our little habits echo our deeper values?',
+      'Is there a good balance between “me” and “us”?',
+      'Are we becoming more “us” in a way that still respects who we each are?',
       'If this was our last conversion ever- what would you like to tell me and why?',
       'How do decisions happen?',
       'Do we treat each other kindly even in small, everyday moments?',
       'Do we both take responsibility for the health of our relationship?',
-      'Is there a good balance between “me” and “us”?',
       'Where do we need clearer boundaries or stronger unity?'
     ],
     duoSentence: 'The same healthy patterns recur across scales — neurons, individuals, families, communities, nations and nature. Balance between autonomy and unity.'
@@ -284,7 +282,6 @@ export const DIMENSIONS: Dimension[] = [
     },
     actionIdea: 'Create a small ritual of remembrance and intention: light a candle, name one thing you’re releasing from the past and one dream you’re planting for the future.',
     duoQuestions: [
-      'Is the system aligned across time?',
       'Is it rooted in the present, not trapped by trauma or illusion?',
       'Does it move toward the future from internal needs, not external fear?',
       'If i lost my memory, what would be the first thing you would tell me about us?',
@@ -292,7 +289,6 @@ export const DIMENSIONS: Dimension[] = [
       'Do we have rituals that connect our past to your future?',
       'If your story were a book, what’s the title of your next chapter?',
       'If our love was a tree, what roots have we already grown—and where might we still need to plant?',
-      'Are we becoming more “us” in a way that still respects who we each are?',
       'If our relationship was a book, what chapter are we in — and what’s the next one called?'
     ],
     duoSentence: 'Temporal integration happens when the past stops haunting and starts teaching.'
