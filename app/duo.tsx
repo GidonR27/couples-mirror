@@ -120,7 +120,11 @@ export default function Duo() {
   const renderPhaseDisclaimer = () => (
     <VignetteView key="phase-disclaimer">
       <View style={styles.centerContent}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 40, alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+           style={{ maxHeight: '70%', width: '100%' }}
+           contentContainerStyle={{ paddingVertical: 20, alignItems: 'center' }} 
+           showsVerticalScrollIndicator={false}
+        >
            <Body style={styles.disclaimerText}>{DUO_DISCLAIMER[0]}</Body>
            <Body style={styles.disclaimerText}>{DUO_DISCLAIMER[1]}</Body>
            
