@@ -38,15 +38,32 @@ interface BreathTransitionProps {
   onComplete: () => void;
   text?: string;
   completedIndex: number; // 0 to 4
+  duoMode?: boolean; // New prop to trigger Duo logic
+  completedDimensions?: string[]; // Array of dimension IDs completed in Duo
 }
 
-const Orb = ({ index, completedIndex, total }: { index: number, completedIndex: number, total: number }) => {
+const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { index: number, completedIndex: number, total: number, duoMode?: boolean, completedDimensions?: string[] }) => {
   const angle = (index / total) * 2 * Math.PI - Math.PI / 2; // Start at top (-90deg)
   const x = Math.cos(angle) * CIRCLE_RADIUS;
   const y = Math.sin(angle) * CIRCLE_RADIUS;
 
-  const isActive = index === completedIndex;
-  const isCompleted = index < completedIndex;
+  // Determine if active/completed based on mode
+  let isActive = false;
+  let isCompleted = false;
+  const dimId = DIMENSIONS[index].id;
+
+  if (duoMode && completedDimensions) {
+    // In Duo mode:
+    // Active if it matches the current completedIndex (which is the original ID index)
+    isActive = index === completedIndex;
+    // Completed if its ID is in the list AND it's not the active one
+    // We only want to show previously completed ones, but NOT future ones even if their index is lower
+    isCompleted = completedDimensions.includes(dimId) && !isActive;
+  } else {
+    // Solo mode (sequential 0-4)
+    isActive = index === completedIndex;
+    isCompleted = index < completedIndex;
+  }
 
   const scale = useSharedValue(isCompleted ? 1 : 0);
   const opacity = useSharedValue(isCompleted ? 1 : 0);
@@ -130,7 +147,7 @@ const Orb = ({ index, completedIndex, total }: { index: number, completedIndex: 
   );
 };
 
-export const BreathTransition = ({ onComplete, completedIndex }: BreathTransitionProps) => {
+export const BreathTransition = ({ onComplete, completedIndex, duoMode, completedDimensions }: BreathTransitionProps) => {
   const containerOpacity = useSharedValue(0);
   const breatheScale = useSharedValue(1);
 
@@ -171,7 +188,14 @@ export const BreathTransition = ({ onComplete, completedIndex }: BreathTransitio
           
           {/* Orbs and Labels */}
           {Array.from({ length: 5 }).map((_, i) => (
-            <Orb key={i} index={i} completedIndex={completedIndex} total={5} />
+            <Orb 
+              key={i} 
+              index={i} 
+              completedIndex={completedIndex} 
+              total={5} 
+              duoMode={duoMode}
+              completedDimensions={completedDimensions}
+            />
           ))}
         </Animated.View>
 

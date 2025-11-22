@@ -32,6 +32,7 @@ export default function Duo() {
   const [currentDimIndex, setCurrentDimIndex] = useState(0);
   const [subStep, setSubStep] = useState<DuoSubStep>('phase_title');
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [completedDimensions, setCompletedDimensions] = useState<string[]>([]);
 
   useEffect(() => {
     const dims = getSortedDuoDimensions();
@@ -86,6 +87,10 @@ export default function Duo() {
         setSubStep('sentence');
       }
     } else     if (subStep === 'sentence') {
+        // Add current dimension ID to completed list
+        if (!completedDimensions.includes(currentDim.id)) {
+          setCompletedDimensions(prev => [...prev, currentDim.id]);
+        }
         setSubStep('breath');
     } else if (subStep === 'breath') {
        if (currentDimIndex < sortedDimensions.length - 1) {
@@ -224,7 +229,9 @@ export default function Duo() {
     return (
         <BreathTransition 
           onComplete={handleBreathComplete} 
-          completedIndex={originalIndex} 
+          completedIndex={originalIndex}
+          duoMode={true}
+          completedDimensions={completedDimensions}
         />
     );
   };
