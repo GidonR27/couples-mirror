@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSessionStore } from '../src/store/sessionStore';
 import { DIMENSIONS, RESOLUTION_CONTENT, Dimension, ThemeColor } from '../src/data/content';
 import { VignetteView } from '../src/components/VignetteView';
+import { BreathTransition } from '../src/components/BreathTransition';
 import { Title, Subtitle, Body, Quote } from '../src/components/Typography';
 import { useTheme } from '../src/components/ThemeContext';
 import { AdminMenu } from '../src/components/AdminMenu';
@@ -12,7 +13,7 @@ const ShimmerBackground = React.lazy(() =>
   import('../src/components/ShimmerBackground').then(module => ({ default: module.ShimmerBackground }))
 );
 
-type DuoSubStep = 'phase_title' | 'phase_disclaimer' | 'intro' | 'questions' | 'sentence' | 'resolution';
+type DuoSubStep = 'phase_title' | 'phase_disclaimer' | 'intro' | 'questions' | 'sentence' | 'breath' | 'resolution';
 
 const DUO_DISCLAIMER = [
   "Be aware — this experience may shine a spotlight on your differences and gaps.",
@@ -52,6 +53,10 @@ export default function Duo() {
     }
   }, [currentDimIndex, sortedDimensions, subStep]);
 
+  const getOriginalDimensionIndex = (dimId: string) => {
+      return DIMENSIONS.findIndex(d => d.id === dimId);
+  };
+
   const handleNext = () => {
     if (subStep === 'phase_title') {
       setSubStep('phase_disclaimer');
@@ -80,14 +85,25 @@ export default function Duo() {
       } else {
         setSubStep('sentence');
       }
-    } else if (subStep === 'sentence') {
-      if (currentDimIndex < sortedDimensions.length - 1) {
-        setCurrentDimIndex(prev => prev + 1);
-        setSubStep('intro');
-      } else {
-        setSubStep('resolution');
-      }
+    } else     if (subStep === 'sentence') {
+        setSubStep('breath');
+    } else if (subStep === 'breath') {
+       if (currentDimIndex < sortedDimensions.length - 1) {
+         setCurrentDimIndex(prev => prev + 1);
+         setSubStep('intro');
+       } else {
+         setSubStep('resolution');
+       }
     }
+  };
+
+  const handleBreathComplete = () => {
+       if (currentDimIndex < sortedDimensions.length - 1) {
+         setCurrentDimIndex(prev => prev + 1);
+         setSubStep('intro');
+       } else {
+         setSubStep('resolution');
+       }
   };
 
   const handleSkipToSentence = () => {
@@ -119,7 +135,7 @@ export default function Duo() {
 
   const renderPhaseDisclaimer = () => (
     <VignetteView key="phase-disclaimer">
-      <View style={styles.centerContent}>
+      <View style={[styles.centerContent, { justifyContent: 'space-between', flex: 1 }]}>
         <ScrollView 
            style={{ maxHeight: '70%', width: '100%' }}
            contentContainerStyle={{ paddingVertical: 20, alignItems: 'center' }} 
@@ -132,11 +148,11 @@ export default function Duo() {
            <Body style={styles.disclaimerText}>{DUO_DISCLAIMER[3]}</Body>
            
            <Quote style={{ fontSize: 22, marginTop: 20 }}>"{DUO_DISCLAIMER[4]}"</Quote>
-
-           <TouchableOpacity style={styles.button} onPress={handleNext}>
-              <Text style={styles.buttonText}>I Understand</Text>
-           </TouchableOpacity>
         </ScrollView>
+
+        <TouchableOpacity style={[styles.button, { marginBottom: 20 }]} onPress={handleNext}>
+          <Text style={styles.buttonText}>I Understand</Text>
+        </TouchableOpacity>
       </View>
     </VignetteView>
   );
@@ -148,6 +164,7 @@ export default function Duo() {
             <View style={styles.centerContent}>
                 <Subtitle>Joint Phase</Subtitle>
                 <Title>{dim.title}</Title>
+                <Quote style={{ marginVertical: 20 }}>"{dim.description}"</Quote>
                 <Body>Turn to each other. Read the questions aloud and discuss them honestly.</Body>
                 <TouchableOpacity style={styles.button} onPress={handleNext}>
                     <Text style={styles.buttonText}>Begin Discussion</Text>
@@ -192,11 +209,23 @@ export default function Duo() {
                 <Quote>"{dim.duoSentence}"</Quote>
                 <TouchableOpacity style={styles.button} onPress={handleNext}>
                     <Text style={styles.buttonText}>
-                        {currentDimIndex < sortedDimensions.length - 1 ? "Next Dimension" : "Finish"}
+                        Complete Dimension
                     </Text>
                 </TouchableOpacity>
             </View>
         </VignetteView>
+    );
+  };
+
+  const renderBreath = () => {
+    const dim = sortedDimensions[currentDimIndex];
+    const originalIndex = getOriginalDimensionIndex(dim.id);
+
+    return (
+        <BreathTransition 
+          onComplete={handleBreathComplete} 
+          completedIndex={originalIndex} 
+        />
     );
   };
 
@@ -242,6 +271,7 @@ export default function Duo() {
         {subStep === 'intro' && renderIntro()}
         {subStep === 'questions' && renderQuestions()}
         {subStep === 'sentence' && renderSentence()}
+        {subStep === 'breath' && renderBreath()}
         {subStep === 'resolution' && renderResolution()}
       </View>
       <AdminMenu onDebugAction={handleDebugAction} />
