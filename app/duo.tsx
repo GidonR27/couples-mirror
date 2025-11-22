@@ -118,6 +118,19 @@ export default function Duo() {
   const handleDebugAction = (action: string) => {
       if (action === 'skipStep') {
           handleNext();
+      } else if (action.startsWith('jumpToDimension:')) {
+          const index = parseInt(action.split(':')[1], 10);
+          // In Duo, we are iterating over *sorted* dimensions
+          // But the admin menu lists them in canonical order (1-5)
+          // So we need to find where that canonical ID exists in our sorted list
+          const targetId = DIMENSIONS[index].id;
+          const sortedIndex = sortedDimensions.findIndex(d => d.id === targetId);
+          
+          if (sortedIndex !== -1) {
+              setCurrentDimIndex(sortedIndex);
+              setSubStep('intro');
+              setQuestionIndex(0);
+          }
       }
   };
 

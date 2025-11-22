@@ -131,6 +131,10 @@ export default function Index() {
           setSubStep('breath');
       } else if (action === 'skipStep') {
           handleSkip();
+      } else if (action === 'jumpToDimension') {
+          // The store has already been updated, just reset local state
+          setSubStep('intro');
+          setQuestionIndex(0);
       }
   };
 

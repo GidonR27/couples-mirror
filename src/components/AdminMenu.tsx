@@ -12,6 +12,7 @@ export const AdminMenu = ({ onDebugAction }: AdminMenuProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showScores, setShowScores] = useState(false);
     const [showSkipButton, setShowSkipButton] = useState(false);
+    const [showDimensionSelector, setShowDimensionSelector] = useState(false);
     
     const { 
         partner1Answers, 
@@ -19,7 +20,8 @@ export const AdminMenu = ({ onDebugAction }: AdminMenuProps) => {
         phase, 
         setPhase, 
         debug_randomizeAndSkipToDuo,
-        debug_setDimensionIndex 
+        debug_setDimensionIndex,
+        currentDimensionIndex
     } = useSessionStore();
 
     const calculateScores = () => {
@@ -93,6 +95,22 @@ export const AdminMenu = ({ onDebugAction }: AdminMenuProps) => {
         setIsOpen(false);
     };
 
+    const handleJumpToDimension = (index: number) => {
+        if (phase === 'duo') {
+            // For Duo, we might need to update the local state in Duo.tsx
+            // But since Duo.tsx uses local state for sorted dimensions, this is tricky from outside.
+            // Ideally, Duo.tsx should sync with the store index or we pass an action.
+            // For now, we'll just set the store index, but Duo.tsx needs to listen to it or we trigger a reload.
+            // The easiest way given current architecture is to let the parent (Duo.tsx) handle 'jumpToDimension' action.
+            onDebugAction?.(`jumpToDimension:${index}`);
+        } else {
+            // Solo phases
+            debug_setDimensionIndex(index);
+            onDebugAction?.('jumpToDimension'); // Trigger a re-render/reset in Index.tsx
+        }
+        setIsOpen(false);
+    };
+
     // Global skip overlay
     if (showSkipButton && !isOpen) {
         return (
@@ -144,6 +162,30 @@ export const AdminMenu = ({ onDebugAction }: AdminMenuProps) => {
                 >
                     <Text style={styles.buttonText}>Show Global Skip Button</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={styles.button} 
+                    onPress={() => setShowDimensionSelector(!showDimensionSelector)}
+                >
+                    <Text style={styles.buttonText}>Jump to Dimension...</Text>
+                </TouchableOpacity>
+
+                {showDimensionSelector && (
+                    <View style={styles.selectorContainer}>
+                        {DIMENSIONS.map((dim, idx) => (
+                            <TouchableOpacity 
+                                key={dim.id} 
+                                style={[
+                                    styles.selectorButton, 
+                                    (phase === 'duo' ? false : currentDimensionIndex === idx) && styles.activeSelector
+                                ]}
+                                onPress={() => handleJumpToDimension(idx)}
+                            >
+                                <Text style={styles.selectorText}>{idx + 1}. {dim.title}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
 
                 <View style={styles.divider} />
 
@@ -287,6 +329,25 @@ const styles = StyleSheet.create({
     smallClose: {
         marginLeft: 8,
         padding: 4,
+    },
+    selectorContainer: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    selectorButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.1)',
+    },
+    activeSelector: {
+        backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    },
+    selectorText: {
+        color: '#ddd',
+        fontSize: 13,
     }
 });
 
