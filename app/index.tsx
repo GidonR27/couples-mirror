@@ -159,9 +159,6 @@ export default function Index() {
          <Body style={{ fontSize: 14, marginTop: 20, opacity: 0.7, textAlign: 'center' }}>
             When you finish, we’ll let you know when to hand the device to your partner so they can answer the same questions.
          </Body>
-         <Body style={{ fontSize: 14, marginTop: 10, opacity: 0.5, fontStyle: 'italic' }}>
-            (This is not a test)
-         </Body>
       </View>
     ];
 
