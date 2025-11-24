@@ -68,7 +68,7 @@ export const DIMENSIONS: Dimension[] = [
     },
     actionIdea: 'Choose one area (finances, intimacy, parenting, emotional needs) where you’ll practice “truthful curiosity” this week — not accusations, but gentle inquiry.',
     duoQuestions: [
-      'Think about the last time you thought something about your partner but didn’t want to share it? Say it now, explain why you feel this way.',
+      'Think about the last time you thought something about your partner but didn’t want to share it? Share it now (partner only listens).',
       'Do we ask questions when we don’t understand each other? Do we listen?',
       'When was the last time you admitted you were wrong?'
     ],
@@ -121,7 +121,6 @@ export const DIMENSIONS: Dimension[] = [
       'Do we feel emotionally safe and cared for in this relationship?',
       'Do we each feel supported in our goals and passions?',
       'Are we both becoming better, freer versions of ourselves here?',
-      'In what ways have we each grown because of this relationship?',
       'Do we feel we’re allowed to change, grow, and evolve—or do we have to "stay the same"?'
     ],
     duoSentence: 'Growth isn’t a goal; it’s a rhythm between autonomy and nourishment.'
@@ -171,7 +170,7 @@ export const DIMENSIONS: Dimension[] = [
       question: 'Recall one way you helped your partner change for the better.',
       type: 'text'
     },
-    actionIdea: 'Practice one repair ritual — e.g., saying “I see your point,” or ending conflict with gratitude.',
+    actionIdea: 'Pick one recurring argument and agree to change one small behavior each, then check in after a few days about what shifted.',
     duoQuestions: [
       'Are we able to change patterns or habits that don’t work anymore?',
       'How do we respond to change (moving, new job, loss)?',
@@ -240,7 +239,7 @@ export const DIMENSIONS: Dimension[] = [
     title: 'Temporal Coherence',
     theme: 'Time does not erase — it integrates',
     description: 'Relationship with past, present, and future.',
-    goal: 'Understand how memory, healing, and vision connect in the couple’s story.',
+    goal: 'Understand how memory, healing, and vision help us seize the moment.',
     themeColor: 'gold',
     guidingQuestions: [
       {
@@ -252,11 +251,11 @@ export const DIMENSIONS: Dimension[] = [
         ]
       },
       {
-        question: 'Have we truly forgiven past mistakes — or just buried them?',
+        question: 'Can we be in the now together — seeing and feeling it freely, without past weight or future fear?',
         rangeExamples: [
-          { label: 'Low', description: 'We bring up old scores whenever we fight.' },
-          { label: 'Medium', description: 'We say we forgive, but the pain sometimes resurfaces.' },
-          { label: 'High', description: 'We forgive genuinely and do not use the past as a weapon.' }
+          { label: 'Low', description: 'It is hard to relax into the present; old hurts and worries quickly take over.' },
+          { label: 'Medium', description: 'We have pockets of ease and enjoyment, but they are often interrupted by tension or overthinking.' },
+          { label: 'High', description: 'We can drop into the here-and-now together, feeling light, playful, and free to simply enjoy each other.' }
         ]
       },
       {
@@ -280,14 +279,13 @@ export const DIMENSIONS: Dimension[] = [
       question: 'What\'s a relationship behavior you inherited from your parents or childhood?',
       type: 'text'
     },
-    actionIdea: 'Create a small ritual of remembrance and intention: light a candle, name one thing you’re releasing from the past and one dream you’re planting for the future.',
+    actionIdea: 'Sit together without phones and each play three songs that have been meaningful to you; share what each one touches or represents.',
     duoQuestions: [
-      'Is it rooted in the present, not trapped by trauma or illusion?',
-      'Does it move toward the future from internal needs, not external fear?',
+      'Are we rooted in the present and manage to find moments where we are fully in the now? not trapped by trauma or fear?',
+      'Do we move toward the future from internal needs, not external fear?',
       'If i lost my memory, what would be the first thing you would tell me about us?',
       'What experience do we wish we never had?',
-      'Do we have rituals that connect our past to your future?',
-      'If your story were a book, what’s the title of your next chapter?',
+      'Do we have rituals that connect our past to our shared future?',
       'If our love was a tree, what roots have we already grown—and where might we still need to plant?',
       'If our relationship was a book, what chapter are we in — and what’s the next one called?'
     ],

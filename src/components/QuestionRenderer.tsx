@@ -16,11 +16,24 @@ interface QuestionRendererProps {
 
 export const QuestionRenderer = ({ mode, data, onAnswer }: QuestionRendererProps) => {
   const [selectedVal, setSelectedVal] = useState<any>(null);
+  const [showGuidanceNudge, setShowGuidanceNudge] = useState(false);
 
   // Reset selection when data changes (if key prop isn't sufficient upstream)
   useEffect(() => {
     setSelectedVal(null);
   }, [data]);
+
+  // Gentle nudge for solo phase range (guiding) questions
+  useEffect(() => {
+    if (mode !== 'guiding') return;
+
+    setShowGuidanceNudge(false);
+    const timeoutId = setTimeout(() => {
+      setShowGuidanceNudge(true);
+    }, 30000); // 30 seconds
+
+    return () => clearTimeout(timeoutId);
+  }, [mode, data]);
 
   const handleContinue = () => {
     if (selectedVal) {
@@ -50,6 +63,14 @@ export const QuestionRenderer = ({ mode, data, onAnswer }: QuestionRendererProps
               </Animated.View>
             )}
           </View>
+
+          {showGuidanceNudge && (
+            <View style={styles.guidanceNudgeContainer}>
+              <Text style={styles.guidanceNudgeText}>
+                Not sure? Choose the answer that feels closest right now.
+              </Text>
+            </View>
+          )}
         </View>
       </VignetteView>
     );
@@ -117,5 +138,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 1,
-  }
+  },
+  guidanceNudgeContainer: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+  },
+  guidanceNudgeText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });

@@ -14,7 +14,7 @@ import { Quote } from './Typography';
 import { DIMENSIONS } from '../data/content';
 
 const { width } = Dimensions.get('window');
-const ORB_SIZE = 16;
+const ORB_SIZE = 22;
 const CIRCLE_RADIUS = width * 0.28; 
 
 // Poetic texts for each dimension
@@ -34,15 +34,38 @@ const ORB_COLORS = [
   '#D4AF37', // Gold (Temporal)
 ];
 
+type JointScore = {
+  id: string;
+  score: number;
+};
+
 interface BreathTransitionProps {
   onComplete: () => void;
   text?: string;
   completedIndex: number; // 0 to 4
   duoMode?: boolean; // New prop to trigger Duo logic
   completedDimensions?: string[]; // Array of dimension IDs completed in Duo
+  jointMode?: boolean; // Joint map mode for Duo overview
+  jointScores?: JointScore[]; // Scores per dimension (combined p1+p2)
 }
 
-const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { index: number, completedIndex: number, total: number, duoMode?: boolean, completedDimensions?: string[] }) => {
+const Orb = ({
+  index,
+  completedIndex,
+  total,
+  duoMode,
+  completedDimensions,
+  jointMode,
+  jointScale,
+}: {
+  index: number;
+  completedIndex: number;
+  total: number;
+  duoMode?: boolean;
+  completedDimensions?: string[];
+  jointMode?: boolean;
+  jointScale?: number;
+}) => {
   const angle = (index / total) * 2 * Math.PI - Math.PI / 2; // Start at top (-90deg)
   const x = Math.cos(angle) * CIRCLE_RADIUS;
   const y = Math.sin(angle) * CIRCLE_RADIUS;
@@ -52,7 +75,11 @@ const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { i
   let isCompleted = false;
   const dimId = DIMENSIONS[index].id;
 
-  if (duoMode && completedDimensions) {
+  if (jointMode) {
+    // In joint map mode we just show all orbs as "present"
+    isActive = false;
+    isCompleted = true;
+  } else if (duoMode && completedDimensions) {
     // In Duo mode:
     // Active if it matches the current completedIndex (which is the original ID index)
     isActive = index === completedIndex;
@@ -65,15 +92,43 @@ const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { i
     isCompleted = index < completedIndex;
   }
 
-  const scale = useSharedValue(isCompleted ? 1 : 0);
+  const baseScale = jointMode && jointScale ? jointScale : 1;
+  const scale = useSharedValue(isCompleted ? baseScale : 0);
   const opacity = useSharedValue(isCompleted ? 1 : 0);
   const pulse = useSharedValue(1);
   const textOpacity = useSharedValue(isCompleted ? 0.7 : 0);
 
   useEffect(() => {
-    if (isActive) {
+    const ts = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    console.log('[Perf][Orb] state change', {
+      ts,
+      index,
+      dimId,
+      isActive,
+      isCompleted,
+    });
+
+    if (jointMode) {
+      // Joint map: reveal all, then gentle shared breathing
+      const delayBase = 300 + index * 150;
+      scale.value = withDelay(delayBase, withTiming(baseScale, { duration: 800 }));
+      opacity.value = withDelay(delayBase, withTiming(1, { duration: 800 }));
+      textOpacity.value = withDelay(delayBase + 400, withTiming(0.9, { duration: 600 }));
+
+      pulse.value = withDelay(
+        1200,
+        withRepeat(
+          withSequence(
+            withTiming(1.05, { duration: 2000 }),
+            withTiming(0.95, { duration: 2000 })
+          ),
+          -1,
+          true
+        )
+      );
+    } else if (isActive) {
       // Bloom animation for current item
-      scale.value = withDelay(500, withTiming(1.5, { duration: 1000 }));
+      scale.value = withDelay(500, withTiming(1.6, { duration: 1000 }));
       opacity.value = withDelay(500, withTiming(1, { duration: 800 }));
       textOpacity.value = withDelay(1000, withTiming(1, { duration: 800 }));
       
@@ -82,24 +137,25 @@ const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { i
         withTiming(1.0, { duration: 1000 })
       ), -1, true));
     } else if (isCompleted) {
-       scale.value = 1;
+       scale.value = baseScale;
        opacity.value = 1;
        textOpacity.value = 0.7;
     }
   }, [isActive, isCompleted]);
 
   const animatedStyle = useAnimatedStyle(() => {
+    const shouldPulse = jointMode || isActive;
     return {
       transform: [
-        { translateX: x }, 
+        { translateX: x },
         { translateY: y },
-        { scale: isActive ? scale.value * pulse.value : scale.value }
+        { scale: shouldPulse ? scale.value * pulse.value : scale.value },
       ],
       opacity: opacity.value,
       backgroundColor: ORB_COLORS[index],
       shadowColor: ORB_COLORS[index],
-      shadowRadius: isActive ? 20 : 10,
-      shadowOpacity: isActive ? 0.8 : 0.5,
+      shadowRadius: shouldPulse ? 20 : 10,
+      shadowOpacity: shouldPulse ? 0.8 : 0.5,
     };
   });
 
@@ -147,11 +203,52 @@ const Orb = ({ index, completedIndex, total, duoMode, completedDimensions }: { i
   );
 };
 
-export const BreathTransition = ({ onComplete, completedIndex, duoMode, completedDimensions }: BreathTransitionProps) => {
+export const BreathTransition = ({
+  onComplete,
+  completedIndex,
+  duoMode,
+  completedDimensions,
+  jointMode,
+  jointScores,
+}: BreathTransitionProps) => {
   const containerOpacity = useSharedValue(0);
   const breatheScale = useSharedValue(1);
 
+  // Precompute joint size scales if needed
+  let jointScaleByIndex: number[] | undefined;
+  if (jointMode && jointScores && jointScores.length > 0) {
+    const scoresById = new Map(jointScores.map(js => [js.id, js.score]));
+    const rawScores = DIMENSIONS.map(dim => scoresById.get(dim.id) ?? 0);
+    const nonZero = rawScores.filter(s => s > 0);
+
+    if (nonZero.length > 0) {
+      const min = Math.min(...nonZero);
+      const max = Math.max(...nonZero);
+      const MIN_SCALE = 0.8;
+      const MAX_SCALE = 2.0;
+
+      if (max === min) {
+        jointScaleByIndex = rawScores.map(() => 1);
+      } else {
+        jointScaleByIndex = rawScores.map(score => {
+          const normalized = (max - score) / (max - min); // lower score => larger orb
+          return MIN_SCALE + (MAX_SCALE - MIN_SCALE) * normalized;
+        });
+      }
+    } else {
+      jointScaleByIndex = rawScores.map(() => 1);
+    }
+  }
+
   useEffect(() => {
+    const startTs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    console.log('[Perf][BreathTransition] mount', {
+      ts: startTs,
+      completedIndex,
+      duoMode,
+      completedDimensions,
+    });
+
     containerOpacity.value = withTiming(1, { duration: 1000 });
 
     breatheScale.value = withRepeat(
@@ -165,10 +262,24 @@ export const BreathTransition = ({ onComplete, completedIndex, duoMode, complete
 
     // 3. Complete - Increased Duration
     const timeout = setTimeout(() => {
+      const nowTs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      console.log('[Perf][BreathTransition] onComplete timeout fired', {
+        ts: nowTs,
+        elapsedMs: nowTs - startTs,
+        completedIndex,
+      });
       runOnJS(onComplete)();
     }, 8000); // Increased from 5000 to 8000
 
-    return () => clearTimeout(timeout);
+    return () => {
+      const endTs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      console.log('[Perf][BreathTransition] unmount', {
+        ts: endTs,
+        livedMs: endTs - startTs,
+        completedIndex,
+      });
+      clearTimeout(timeout);
+    };
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({
@@ -176,7 +287,7 @@ export const BreathTransition = ({ onComplete, completedIndex, duoMode, complete
   }));
 
   const systemStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: breatheScale.value }]
+    transform: [{ scale: breatheScale.value }],
   }));
 
   return (
@@ -195,6 +306,8 @@ export const BreathTransition = ({ onComplete, completedIndex, duoMode, complete
               total={5} 
               duoMode={duoMode}
               completedDimensions={completedDimensions}
+              jointMode={jointMode}
+              jointScale={jointScaleByIndex ? jointScaleByIndex[i] : undefined}
             />
           ))}
         </Animated.View>

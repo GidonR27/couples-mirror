@@ -18,7 +18,16 @@ export const RangeQuestion = ({ question, options, onSelect }: RangeQuestionProp
           <TouchableOpacity 
             key={index} 
             style={styles.optionButton} 
-            onPress={() => onSelect(opt.value)}
+            onPress={() => {
+              const ts = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+              console.log('[Perf][RangeQuestion] optionPress', {
+                ts,
+                index,
+                value: opt.value,
+                label: opt.label,
+              });
+              onSelect(opt.value);
+            }}
           >
             <Text style={styles.optionLabel}>{opt.label}</Text>
             <Text style={styles.optionDesc}>{opt.description}</Text>

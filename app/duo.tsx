@@ -13,7 +13,7 @@ const ShimmerBackground = React.lazy(() =>
   import('../src/components/ShimmerBackground').then(module => ({ default: module.ShimmerBackground }))
 );
 
-type DuoSubStep = 'phase_title' | 'phase_disclaimer' | 'intro' | 'questions' | 'sentence' | 'breath' | 'resolution';
+type DuoSubStep = 'phase_title' | 'phase_disclaimer' | 'joint_map' | 'intro' | 'questions' | 'sentence' | 'breath' | 'resolution';
 
 const DUO_DISCLAIMER = [
   "Be aware — this experience may shine a spotlight on your differences and gaps.",
@@ -25,7 +25,7 @@ const DUO_DISCLAIMER = [
 
 export default function Duo() {
   const router = useRouter();
-  const { getSortedDuoDimensions } = useSessionStore();
+  const { getSortedDuoDimensions, partner1Answers, partner2Answers } = useSessionStore();
   const { setTheme } = useTheme();
 
   const [sortedDimensions, setSortedDimensions] = useState<Dimension[]>([]);
@@ -41,7 +41,7 @@ export default function Duo() {
 
   useEffect(() => {
     // Set theme for phase intro screens
-    if (subStep === 'phase_title' || subStep === 'phase_disclaimer') {
+    if (subStep === 'phase_title' || subStep === 'phase_disclaimer' || subStep === 'joint_map') {
       setTheme('default');
       return;
     }
@@ -65,6 +65,11 @@ export default function Duo() {
     }
 
     if (subStep === 'phase_disclaimer') {
+      setSubStep('joint_map');
+      return;
+    }
+
+    if (subStep === 'joint_map') {
       setSubStep('intro');
       return;
     }
@@ -137,6 +142,64 @@ export default function Duo() {
   if (sortedDimensions.length === 0) return null;
 
   // RENDERERS
+
+  const calculateJointScores = () => {
+    return DIMENSIONS.map(dim => {
+      const calc = (answers: Record<string, { questionId: string; value: number | string }>) => {
+        let s = 0;
+        let c = 0;
+        for (let i = 0; i < 10; i++) {
+          const k = `${dim.id}-${i}`;
+          const answer = answers[k];
+          if (answer && typeof answer.value === 'number') {
+            s += Number(answer.value);
+            c++;
+          }
+        }
+        return c === 0 ? 0 : Math.round((s / c) * 10) / 10;
+      };
+
+      const s1 = calc(partner1Answers);
+      const s2 = calc(partner2Answers);
+      const total = Math.round((s1 + s2) * 10) / 10;
+
+      return {
+        id: dim.id,
+        score: total,
+      };
+    });
+  };
+
+  const renderJointMap = () => {
+    const jointScores = calculateJointScores();
+
+    // Map scores to canonical dimension order
+    const scoresById = new Map(jointScores.map(js => [js.id, js.score]));
+    const scorePerIndex = DIMENSIONS.map(dim => scoresById.get(dim.id) ?? 0);
+
+    // Determine the highest-priority (lowest-score) dimension to highlight in the quote
+    let highlightIndex = 0;
+    let minScore = Number.POSITIVE_INFINITY;
+    scorePerIndex.forEach((score, idx) => {
+      if (score > 0 && score < minScore) {
+        minScore = score;
+        highlightIndex = idx;
+      }
+    });
+
+    const handleJointComplete = () => {
+      setSubStep('intro');
+    };
+
+    return (
+      <BreathTransition
+        onComplete={handleJointComplete}
+        completedIndex={highlightIndex}
+        jointMode
+        jointScores={jointScores}
+      />
+    );
+  };
 
   const renderPhaseTitle = () => (
     <VignetteView key="phase-title">
@@ -263,7 +326,7 @@ export default function Duo() {
                     
                     <View style={styles.divider} />
                     
-                    <Subtitle>Your Growth Areas</Subtitle>
+                    <Subtitle>Your Joint Growth Recommendations</Subtitle>
                     {topDimensions.map(dim => (
                         <View key={dim.id} style={styles.actionCard}>
                             <Text style={styles.actionTitle}>{dim.title}</Text>
@@ -288,6 +351,7 @@ export default function Duo() {
       <View style={styles.safeArea}>
         {subStep === 'phase_title' && renderPhaseTitle()}
         {subStep === 'phase_disclaimer' && renderPhaseDisclaimer()}
+        {subStep === 'joint_map' && renderJointMap()}
         {subStep === 'intro' && renderIntro()}
         {subStep === 'questions' && renderQuestions()}
         {subStep === 'sentence' && renderSentence()}

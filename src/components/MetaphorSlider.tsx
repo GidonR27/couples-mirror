@@ -4,7 +4,8 @@ import Animated, {
   useSharedValue, 
   useAnimatedStyle, 
   withSpring, 
-  withTiming
+  withTiming,
+  FadeIn,
 } from 'react-native-reanimated';
 import { RangeExample } from '../data/content';
 
@@ -24,6 +25,13 @@ export const MetaphorSlider = ({ options, onSelect, initialValue }: MetaphorSlid
   const opacity = useSharedValue(0);
 
   useEffect(() => {
+    const mountTs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    console.log('[Perf][MetaphorSlider] mount', {
+      ts: mountTs,
+      initialValue,
+      optionLabels: options.map(o => o.label),
+    });
+
     opacity.value = withTiming(1, { duration: 800 });
     if (initialValue) {
         const sectionWidth = SLIDER_WIDTH / 3;
@@ -32,6 +40,13 @@ export const MetaphorSlider = ({ options, onSelect, initialValue }: MetaphorSlid
   }, []);
 
   const handlePress = (index: number) => {
+    const pressTs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    console.log('[Perf][MetaphorSlider] handlePress', {
+      ts: pressTs,
+      index,
+      label: options[index]?.label,
+    });
+
     setSelectedIndex(index);
     const sectionWidth = SLIDER_WIDTH / 3;
     // Center thumb in section
@@ -54,7 +69,11 @@ export const MetaphorSlider = ({ options, onSelect, initialValue }: MetaphorSlid
       {/* Description Text Area - Dynamic based on selection */}
       <View style={styles.descriptionContainer}>
         {selectedIndex !== null ? (
-          <Animated.View key={selectedIndex} entering={withTiming({ opacity: 0 })} style={styles.textWrapper}>
+          <Animated.View 
+            key={selectedIndex} 
+            entering={FadeIn.duration(250)} 
+            style={styles.textWrapper}
+          >
              <Text style={styles.descriptionLabel}>{options[selectedIndex].label}</Text>
              <Text style={styles.descriptionText}>
                "{options[selectedIndex].description}"
